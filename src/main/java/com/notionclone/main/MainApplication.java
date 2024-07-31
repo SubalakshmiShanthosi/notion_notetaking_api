@@ -1,4 +1,4 @@
-package com.notionclone.src.main;
+package com.notionclone.main;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
