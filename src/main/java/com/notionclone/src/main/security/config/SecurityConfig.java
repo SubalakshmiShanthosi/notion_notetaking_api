@@ -1,57 +1,24 @@
 package com.notionclone.src.main.security.config;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
-import org.springframework.security.oauth2.core.OAuth2TokenValidator;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtDecoders;
-import org.springframework.security.oauth2.jwt.JwtValidators;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.oauth2.jwt.Jwt;
+import static org.springframework.security.config.Customizer.withDefaults;
 
-@EnableWebSecurity
+
 @Configuration
+@EnableWebSecurity
 public class SecurityConfig {
-    
-    @Value("${auth0.audience}")
-	private String audience;
-
-    @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
-	private String issuer;
 
     @Bean
-	JwtDecoder jwtDecoder() {
-		NimbusJwtDecoder jwtDecoder = (NimbusJwtDecoder) JwtDecoders.fromOidcIssuerLocation(issuer);
-        OAuth2TokenValidator<Jwt> audienceValidator = new AudienceValidator(audience);
-
-		OAuth2TokenValidator<Jwt> withIssuer = JwtValidators.createDefaultWithIssuer(issuer);
-		OAuth2TokenValidator<Jwt> withAudience = new DelegatingOAuth2TokenValidator<>(withIssuer,audienceValidator);
-
-		jwtDecoder.setJwtValidator(withAudience);
-
-		return jwtDecoder;
-	}
-	
-    
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        // @formatter:off
+    public SecurityFilterChain configure(HttpSecurity http) throws Exception {
         http
-                .authorizeHttpRequests((authorize) ->
-                        authorize
-                                .requestMatchers("/auth0/public").permitAll()
-                                .requestMatchers("/auth0/private").authenticated()
-                )
-                .csrf(Customizer.withDefaults())
-                .cors(Customizer.withDefaults())
-                .httpBasic(Customizer.withDefaults()).oauth2ResourceServer(server -> server.jwt(Customizer.withDefaults()));
+            .authorizeHttpRequests(authorize -> authorize
+                .anyRequest().authenticated()
+            )
+            .oauth2Login(withDefaults());
         return http.build();
-        // @formatter:on
-	}
+    }
 }
